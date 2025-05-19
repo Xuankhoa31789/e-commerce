@@ -76,26 +76,21 @@ public class CustomerOperation {
     public boolean registerCustomer(String userName, String userPassword, String userEmail, String userMobile) {
         // Validate inputs
         if (!UserOperation.getInstance().validateUsername(userName)) {
-            System.out.println("Invalid username format");
-            return false;
+            throw new IllegalArgumentException("Invalid username format");
         }
         if (!UserOperation.getInstance().validatePassword(userPassword)) {
-            System.out.println("Invalid password format");
-            return false;
+            throw new IllegalArgumentException("Invalid password format");
         }
         if (!validateEmail(userEmail)) {
-            System.out.println("Invalid email format");
-            return false;
+            throw new IllegalArgumentException("Invalid email format");
         }
         if (!validateMobile(userMobile)) {
-            System.out.println("Invalid mobile number format");
-            return false;
+            throw new IllegalArgumentException("Invalid mobile number format");
         }
 
         // Check if username already exists
         if (UserOperation.getInstance().checkUsernameExist(userName)) {
-            System.out.println("Username already exists");
-            return false;
+            throw new IllegalArgumentException("Username already exists");
         }
 
         // Generate unique user ID
@@ -139,8 +134,7 @@ public class CustomerOperation {
      */
     public boolean updateProfile(String attributeName, String value, Customer customerObject) {
         if (attributeName == null || value == null || customerObject == null) {
-            System.out.println("Invalid input: attributeName, value, or customerObject is null");
-            return false;
+            throw new IllegalArgumentException("Attribute name, value, and customer object cannot be null");
         }
 
         switch (attributeName.toLowerCase()) {
@@ -149,8 +143,7 @@ public class CustomerOperation {
                     customerObject.setUserName(value);
                     return true;
                 } else {
-                    System.out.println("Invalid username format");
-                    return false;
+                    throw new IllegalArgumentException("Invalid username format");
                 }
 
             case "password":
@@ -158,8 +151,7 @@ public class CustomerOperation {
                     customerObject.setUserPassword(value);
                     return true;
                 } else {
-                    System.out.println("Invalid password format");
-                    return false;
+                    throw new IllegalArgumentException("Invalid password format");
                 }
 
             case "email":
@@ -167,8 +159,7 @@ public class CustomerOperation {
                     customerObject.setUserEmail(value);
                     return true;
                 } else {
-                    System.out.println("Invalid email format");
-                    return false;
+                    throw new IllegalArgumentException("Invalid email format");
                 }
 
             case "mobile":
@@ -176,20 +167,17 @@ public class CustomerOperation {
                     customerObject.setUserMobile(value);
                     return true;
                 } else {
-                    System.out.println("Invalid mobile number format");
-                    return false;
+                    throw new IllegalArgumentException("Invalid mobile number format");
                 }
             case "role":
                 if (value.equalsIgnoreCase("customer") || value.equalsIgnoreCase("admin")) {
                     customerObject.setRole(value);
                     return true;
                 } else {
-                    System.out.println("Invalid role");
-                    return false;
+                    throw new IllegalArgumentException("Invalid role format");
                 }
             default:
-                System.out.println("Invalid attribute name");
-                return false;
+                throw new IllegalArgumentException("Invalid attribute name");
         }
     }
 
@@ -202,8 +190,7 @@ public class CustomerOperation {
      */
     public boolean deleteCustomer(String customerId) {
         if (customerId == null || customerId.isEmpty()) {
-            System.out.println("Invalid customer ID");
-            return false;
+            throw new IllegalArgumentException("Customer ID cannot be null or empty");
         }
 
         String filePath = "src/main/data/users.txt";
@@ -235,8 +222,7 @@ public class CustomerOperation {
             }
 
             if (!isDeleted) {
-                System.out.println("Customer ID not found");
-                return false;
+                throw new IllegalArgumentException("Customer ID not found");
             }
 
             try (FileWriter writer = new FileWriter(new File(filePath))) {
@@ -352,10 +338,8 @@ public class CustomerOperation {
                 }
             }
 
-            System.out.println("All customers have been removed successfully.");
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Failed to remove customers.");
         }
 
     }

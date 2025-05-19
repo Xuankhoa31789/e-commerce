@@ -9,5 +9,5 @@
 {"user_role":"customer","user_password":"^^cD1eF2gH3iJ4k$$","user_email":"olivia.martin@example.com","user_id":"u_0000000009","user_mobile":"0489012345","user_name":"olivia_martin","user_register_time":"05-04-2024_08:25:14"}
 {"user_role":"customer","user_password":"^^lM5nO6pQ7rS8t$$","user_email":"mark.anderson@example.com","user_id":"u_0000000010","user_mobile":"0490123456","user_name":"mark_anderson","user_register_time":"15-04-2024_17:10:36"}
 {"user_role":"admin","user_password":"^^uV9wX0yZ1aB2c$$","user_id":"u_0000000011","user_name":"manager","user_register_time":"01-01-2024_10:00:00"}
-{"user_role":"customer","user_password":"^^HUaAYdiJmQyiCinEW10r2oW3AE4TV56L6$$","user_email":"xuka@gmail.com","user_id":"u_0000000012","user_mobile":"0398754321","user_name":"xuka200309","user_register_time":"18-05-2025_17:06:25"}
-{"user_role":"customer","user_password":"^^2HaKxdx2mwYi2xn1D1yz2GP3ST4$$","user_email":"abc@gmail.com","user_id":"u_0000000013","user_mobile":"0302928272","user_name":"linh2003","user_register_time":"19-05-2025_10:43:03"}
+{"user_role":"admin","user_password":"^^HUaAYdiJmQyiCinEW10r2oW3AE4TV56L6$$","user_email":"xuka@gmail.com","user_id":"u_0000000012","user_mobile":"0398754321","user_name":"xuka200309","user_register_time":"18-05-2025_17:06:25"}
+{"user_role":"customer","user_password":"^^T9aizdDimHViGunjY13s2lm3Mn4ZX5uT6$$","user_email":"linh@gmail.com","user_id":"u_0000000013","user_mobile":"0402928270","user_name":"linh200309","user_register_time":"19-05-2025_16:52:07"}

@@ -223,6 +223,7 @@ public class ProductOperation{
 
         // Launch the JavaFX application
         CategoryChartApp.launch(CategoryChartApp.class);
+
     }
 
     /**
@@ -248,7 +249,6 @@ public class ProductOperation{
                 greaterThan60++;
             }
         }
-        System.out.println(lessThan30 + " " + between30And60 + " " + greaterThan60);
         // Set the values in the PieChartApp
         PieChartApp.setLessThan30(lessThan30);
         PieChartApp.setBetween30And60(between30And60);
@@ -264,12 +264,9 @@ public class ProductOperation{
         String filePath = "src/main/data/products.txt";
 
         try {
-            // Overwrite the file with empty content
             Files.write(Paths.get(filePath), new byte[0]);
-            System.out.println("All products have been deleted.");
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("Failed to delete all products.");
         }
     }
 }

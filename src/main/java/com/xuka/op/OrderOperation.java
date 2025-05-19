@@ -10,6 +10,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -319,4 +321,16 @@ public class OrderOperation {
         AllCustomerConsumptionApp.launch(AllCustomerConsumptionApp.class);
     }
 
+    /**
+     * Removes all data in the data/orders.txt file.
+     */
+    public void deleteAllOrders() {
+        String filePath = "src/main/data/orders.txt";
+
+        try {
+            Files.write(Paths.get(filePath), new byte[0]);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

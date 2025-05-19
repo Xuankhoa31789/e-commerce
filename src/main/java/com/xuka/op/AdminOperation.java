@@ -25,5 +25,4 @@ public class AdminOperation {
         return instance;
     }
 
-    //TODO: Implement RegisterAdmin method eventhough idk what the fuck it do
 }

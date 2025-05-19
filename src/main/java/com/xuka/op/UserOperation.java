@@ -153,7 +153,6 @@ public class UserOperation {
      */
     public boolean validateUsername(String userName) {
         if (userName == null || userName.isEmpty()) {
-            System.out.println("Username cannot be null or empty");
             return false; // Username cannot be null or empty
         }
 
@@ -219,8 +218,6 @@ public class UserOperation {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        System.out.println("Login failed: Invalid username or password");
-        return null;
+        throw new IllegalArgumentException("Invalid username or password");
     }
 }

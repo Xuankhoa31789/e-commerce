@@ -2,13 +2,27 @@ package com.xuka.op;
 
 import com.xuka.model.Customer;
 
+import org.json.*;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
 public class CustomerOperation {
     private static CustomerOperation instance = null;
 
     private CustomerOperation() {
-        // Private constructor to prevent instantiation
     }
 
+    /**
+     * Returns the single instance of CustomerOperation.
+     *
+     * @return CustomerOperation instance
+     */
     public static CustomerOperation getInstance() {
         if (instance == null) {
             instance = new CustomerOperation();
@@ -16,6 +30,13 @@ public class CustomerOperation {
         return instance;
     }
 
+    /**
+     * Validate the provided email address format. An email address
+     * consists of username@domain.extension format.
+     *
+     * @param userEmail The email to validate
+     * @return true if valid, false otherwise
+     */
     public boolean validateEmail(String userEmail) {
         if (userEmail == null || userEmail.isEmpty()) {
             return false; // Email cannot be null or empty
@@ -26,6 +47,14 @@ public class CustomerOperation {
         return userEmail.matches(emailRegex);
     }
 
+    /**
+     * Validate the provided mobile number format. The mobile number
+     * should be exactly 10 digits long, consisting only of numbers,
+     * and starting with either '04' or '03'.
+     *
+     * @param userMobile The mobile number to validate
+     * @return true if valid, false otherwise
+     */
     public boolean validateMobile(String userMobile) {
         if (userMobile == null || userMobile.isEmpty()) {
             return false; // Mobile number cannot be null or empty
@@ -35,49 +64,79 @@ public class CustomerOperation {
         return userMobile.matches("^(04|03)\\d{8}$");
     }
 
+    /**
+     * Save the information of the new customer into the data/users.txt file.
+     *
+     * @param userName     Customer's username
+     * @param userPassword Customer's password
+     * @param userEmail    Customer's email
+     * @param userMobile   Customer's mobile number
+     * @return true if success, false if failure
+     */
     public boolean registerCustomer(String userName, String userPassword, String userEmail, String userMobile) {
         // Validate inputs
-        UserOperation userOp = UserOperation.getInstance();
-        CustomerOperation customerOp = CustomerOperation.getInstance();
-
-        if (!userOp.validateUsername(userName) || !userOp.validatePassword(userPassword) ||
-                !customerOp.validateEmail(userEmail) || !customerOp.validateMobile(userMobile)) {
-            System.out.println("Invalid input");
-            return false; // Invalid input
+        if (!UserOperation.getInstance().validateUsername(userName)) {
+            System.out.println("Invalid username format");
+            return false;
+        }
+        if (!UserOperation.getInstance().validatePassword(userPassword)) {
+            System.out.println("Invalid password format");
+            return false;
+        }
+        if (!validateEmail(userEmail)) {
+            System.out.println("Invalid email format");
+            return false;
+        }
+        if (!validateMobile(userMobile)) {
+            System.out.println("Invalid mobile number format");
+            return false;
         }
 
         // Check if username already exists
-        if (userOp.checkUsernameExist(userName)) {
+        if (UserOperation.getInstance().checkUsernameExist(userName)) {
             System.out.println("Username already exists");
-            return false; // Username already exists
+            return false;
         }
 
         // Generate unique user ID
-        String userId = userOp.generateUniqueUserId();
+        String userId = UserOperation.getInstance().generateUniqueUserId();
 
         // Get current system time as register time
-        String registerTime = java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd-MM-yyyy_HH:mm:ss"));
+        String registerTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd-MM-yyyy_HH:mm:ss"));
 
         // Encrypt the password
-        String encryptedPassword = userOp.encryptPassword(userPassword);
+        String encryptedPassword = UserOperation.getInstance().encryptPassword(userPassword);
 
-        // Prepare the user data to write into the file
-        String userData = String.format(
-                "{\"user_id\":\"%s\",\"user_name\":\"%s\",\"user_password\":\"%s\",\"user_register_time\":\"%s\",\"user_role\":\"customer\",\"user_email\":\"%s\",\"user_mobile\":\"%s\"}",
-                userId, userName, encryptedPassword, registerTime, userEmail, userMobile
-        );
+        JSONObject newCustomer = new JSONObject();
+        newCustomer.put("user_id", userId);
+        newCustomer.put("user_name", userName);
+        newCustomer.put("user_password", encryptedPassword);
+        newCustomer.put("user_email", userEmail);
+        newCustomer.put("user_mobile", userMobile);
+        newCustomer.put("user_register_time", registerTime);
+        newCustomer.put("user_role", "customer");
 
-        // Write the user data to the file
         String filePath = "src/main/data/users.txt";
-        try (java.io.FileWriter writer = new java.io.FileWriter(filePath, true)) {
-            writer.write(System.lineSeparator() + userData);
-            return true; // Registration successful
-        } catch (java.io.IOException e) {
+        try (FileWriter writer = new FileWriter(filePath, true)) {
+            writer.write(System.lineSeparator());
+            writer.write(newCustomer.toString());
+        } catch (IOException e) {
             e.printStackTrace();
             return false; // Registration failed
         }
+
+        return true; // Registration successful
     }
 
+    /**
+     * Update the given customer object's attribute value. According to
+     * different attributes, perform appropriate validations.
+     *
+     * @param attributeName  The attribute to update
+     * @param value          The new value
+     * @param customerObject The customer object to update
+     * @return true if updated, false if failed
+     */
     public boolean updateProfile(String attributeName, String value, Customer customerObject) {
         if (attributeName == null || value == null || customerObject == null) {
             System.out.println("Invalid input: attributeName, value, or customerObject is null");
@@ -134,5 +193,172 @@ public class CustomerOperation {
         }
     }
 
+    /**
+     * Delete the customer from the data/users.txt file based on the
+     * provided customer_id.
+     *
+     * @param customerId The ID of the customer to delete
+     * @return true if deleted, false if failed
+     */
+    public boolean deleteCustomer(String customerId) {
+        if (customerId == null || customerId.isEmpty()) {
+            System.out.println("Invalid customer ID");
+            return false;
+        }
 
+        String filePath = "src/main/data/users.txt";
+        try {
+            // Read the file content
+            String content = new String(Files.readAllBytes(Paths.get(filePath)));
+
+            // Split the content into lines
+            String[] lines = content.split(System.lineSeparator());
+            JSONArray jsonArray = new JSONArray();
+
+            // Parse each line as JSON and add to JSONArray
+            for (String line : lines) {
+                if (!line.trim().isEmpty()) {
+                    JSONObject jsonObject = new JSONObject(line);
+                    jsonArray.put(jsonObject);
+                }
+            }
+
+            // Find and remove the customer with the given ID
+            boolean isDeleted = false;
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                if (jsonObject.getString("user_id").equals(customerId)) {
+                    jsonArray.remove(i);
+                    isDeleted = true;
+                    break;
+                }
+            }
+
+            if (!isDeleted) {
+                System.out.println("Customer ID not found");
+                return false;
+            }
+
+            try (FileWriter writer = new FileWriter(new File(filePath))) {
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    writer.write(jsonArray.getJSONObject(i).toString());
+                    if (i < jsonArray.length() - 1) {
+                        writer.write(System.lineSeparator());
+                    }
+                }
+            }
+
+            return true; // Deletion successful
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; // Deletion failed
+        }
+    }
+
+    /**
+     * Retrieve one page of customers from the data/users.txt.
+     * One page contains a maximum of 10 customers.
+     * @param pageNumber The page number to retrieve
+     * @return A List of Customer objects, the current page number, and total
+    pages (This use a helper class CustomerListResult)
+     */
+    public CustomerListResult getCustomerList(int pageNumber) {
+        if (pageNumber < 1) {
+            throw new IllegalArgumentException("Page number must be greater than or equal to 1");
+        }
+
+        String filePath = "src/main/data/users.txt";
+        List<Customer> customers = new ArrayList<>();
+        int totalCustomers = 0;
+
+        try {
+            // Read the entire file content
+            String content = new String(Files.readAllBytes(Paths.get(filePath)));
+
+            // Parse the content as a JSON array
+            String[] lines = content.split(System.lineSeparator());
+            JSONArray jsonArray = new JSONArray();
+            for (String line : lines) {
+                if (!line.trim().isEmpty()) {
+                    jsonArray.put(new JSONObject(line));
+                }
+            }
+
+            // Filter customers and add them to the list
+            for (int i = 0; i < jsonArray.length(); i++) {
+                JSONObject jsonObject = jsonArray.getJSONObject(i);
+                if (jsonObject.getString("user_role").equalsIgnoreCase("customer")) {
+                    Customer customer = new Customer(
+                            jsonObject.getString("user_id"),
+                            jsonObject.getString("user_name"),
+                            jsonObject.getString("user_password"),
+                            jsonObject.getString("user_register_time"),
+                            jsonObject.getString("user_role"),
+                            jsonObject.getString("user_email"),
+                            jsonObject.getString("user_mobile")
+                    );
+                    customers.add(customer);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        totalCustomers = customers.size();
+        int totalPages = (int) Math.ceil((double) totalCustomers / 10);
+
+        if (pageNumber > totalPages) {
+            throw new IllegalArgumentException("Page number exceeds total pages");
+        }
+
+        int startIndex = (pageNumber - 1) * 10;
+        int endIndex = Math.min(startIndex + 10, totalCustomers);
+        List<Customer> pageCustomers = customers.subList(startIndex, endIndex);
+
+        return new CustomerListResult(pageCustomers, pageNumber, totalPages);
+    }
+
+    /**
+     * Removes all the customers from the data/users.txt file.
+     */
+    public void deleteAllCustomers() {
+        String filePath = "src/main/data/users.txt";
+
+        try {
+            // Read the entire file content
+            String content = new String(Files.readAllBytes(Paths.get(filePath)));
+
+            // Split the content into lines
+            String[] lines = content.split(System.lineSeparator());
+            JSONArray jsonArray = new JSONArray();
+
+            // Parse each line as JSON and add only non-customer entries to JSONArray
+            for (String line : lines) {
+                if (!line.trim().isEmpty()) {
+                    JSONObject jsonObject = new JSONObject(line);
+                    if (!jsonObject.getString("user_role").equalsIgnoreCase("customer")) {
+                        jsonArray.put(jsonObject);
+                    }
+                }
+            }
+
+            // Write the updated JSON array back to the file
+            try (FileWriter writer = new FileWriter(filePath)) {
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    writer.write(jsonArray.getJSONObject(i).toString());
+                    if (i < jsonArray.length() - 1) {
+                        writer.write(System.lineSeparator());
+                    }
+                }
+            }
+
+            System.out.println("All customers have been removed successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Failed to remove customers.");
+        }
+
+    }
 }
+
+

@@ -1,10 +1,16 @@
 package com.xuka.op;
 
+import com.xuka.model.Order;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+
 
 public class OrderOperation {
     private static OrderOperation instance = null;
@@ -120,4 +126,109 @@ public class OrderOperation {
             return false;
         }
     }
+
+    /**
+     * Retrieves one page of orders from the database belonging to the
+     * given customer. One page contains a maximum of 10 items.
+     * @param customerId The ID of the customer
+     * @param pageNumber The page number to retrieve
+     * @return A list of Order objects, current page number, and total pages
+     */
+    public OrderListResult getOrderList(String customerId, int pageNumber) {
+        String filePath = "src/main/data/orders.txt";
+        List<Order> customerOrders = new ArrayList<>();
+        int itemsPerPage = 10;
+
+        // Read and filter orders by customer ID
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    JSONObject jsonObject = new JSONObject(line);
+                    if (jsonObject.getString("user_id").equals(customerId)) {
+                        Order order = new Order(
+                                jsonObject.getString("order_id"),
+                                jsonObject.getString("user_id"),
+                                jsonObject.getString("pro_id"),
+                                jsonObject.getString("order_time")
+                        );
+                        customerOrders.add(order);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Calculate pagination details
+        int totalOrders = customerOrders.size();
+        int totalPages = (int) Math.ceil((double) totalOrders / itemsPerPage);
+        pageNumber = Math.max(1, Math.min(pageNumber, totalPages)); // Ensure valid page number
+
+        int startIndex = (pageNumber - 1) * itemsPerPage;
+        int endIndex = Math.min(startIndex + itemsPerPage, totalOrders);
+
+        // Get the orders for the current page
+        List<Order> pageOrders = customerOrders.subList(startIndex, endIndex);
+
+        // Return the result
+        return new OrderListResult(pageOrders, pageNumber, totalPages);
+    }
+
+    /**
+     * Automatically generates test data including customers and orders.
+     * Creates 10 customers and randomly generates 50-200 orders for each.
+     * Order times should be scattered across different months of the year.
+     */
+    public void generateTestOrderData() {
+        String filePath = "src/main/data/orders.txt";
+        Set<String> generatedOrderIds = new HashSet<>();
+        Random random = new Random();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy_HH:mm:ss");
+
+        try (FileWriter writer = new FileWriter(filePath, false)) {
+            // Generate 10 customers
+            for (int customerIndex = 1; customerIndex <= 10; customerIndex++) {
+                String customerId = String.format("u_%010d", customerIndex);
+
+                // Generate 50-200 orders for each customer
+                int orderCount = 50 + random.nextInt(151); // Random number between 50 and 200
+                for (int i = 0; i < orderCount; i++) {
+                    String orderId;
+                    do {
+                        orderId = String.format("o_%05d", random.nextInt(100000));
+                    } while (generatedOrderIds.contains(orderId)); // Ensure unique order ID
+
+                    generatedOrderIds.add(orderId);
+
+                    // Generate random product ID
+                    String productId = String.format("p%03d", 1 + random.nextInt(20)); // Random product ID between p001 and p020
+
+                    // Generate random order time scattered across the year
+                    Calendar calendar = Calendar.getInstance();
+                    calendar.set(Calendar.YEAR, 2025);
+                    calendar.set(Calendar.MONTH, random.nextInt(12)); // Random month
+                    calendar.set(Calendar.DAY_OF_MONTH, 1 + random.nextInt(calendar.getActualMaximum(Calendar.DAY_OF_MONTH)));
+                    calendar.set(Calendar.HOUR_OF_DAY, random.nextInt(24));
+                    calendar.set(Calendar.MINUTE, random.nextInt(60));
+                    calendar.set(Calendar.SECOND, random.nextInt(60));
+                    String orderTime = dateFormat.format(calendar.getTime());
+
+                    // Create JSON object for the order
+                    JSONObject order = new JSONObject();
+                    order.put("order_id", orderId);
+                    order.put("user_id", customerId);
+                    order.put("pro_id", productId);
+                    order.put("order_time", orderTime);
+
+                    // Write the order to the file
+                    writer.write(order.toString() + "\n");
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }

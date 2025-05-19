@@ -16,12 +16,6 @@ public class Main {
         UserOperation userOp = UserOperation.getInstance();
         ProductOperation prodOp = ProductOperation.getInstance();
         OrderOperation orderOp = OrderOperation.getInstance();
-        System.out.println(orderOp.generateUniqueOrderId());
-        if (orderOp.deleteAnOrder("o_00026")) {
-            System.out.println("successfully.");
-        } else {
-            System.out.println("Failed.");
-
-        }
+        orderOp.generateTestOrderData();
     }
 }

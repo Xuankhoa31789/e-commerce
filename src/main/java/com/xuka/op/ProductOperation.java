@@ -5,19 +5,6 @@ import com.xuka.utils.CategoryChartApp;
 import com.xuka.utils.PieChartApp;
 import org.json.JSONObject;
 
-
-import javafx.application.Application;
-import javafx.embed.swing.SwingFXUtils;
-import javafx.scene.Scene;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.XYChart;
-import javafx.scene.image.WritableImage;
-import javafx.stage.Stage;
-
-import javax.imageio.ImageIO;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;

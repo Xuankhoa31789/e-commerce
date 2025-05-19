@@ -4,16 +4,24 @@ import com.xuka.model.Customer;
 import com.xuka.model.Product;
 import com.xuka.model.User;
 import com.xuka.op.CustomerOperation;
+import com.xuka.op.OrderOperation;
 import com.xuka.op.ProductOperation;
 import com.xuka.op.UserOperation;
 
 import java.util.List;
 
 public class Main {
-    public static <DeleteCustomer> void main(String[] args) {
+    public static void main(String[] args) {
         CustomerOperation customerOp = CustomerOperation.getInstance();
         UserOperation userOp = UserOperation.getInstance();
         ProductOperation prodOp = ProductOperation.getInstance();
-        prodOp.deleteAllProducts();
+        OrderOperation orderOp = OrderOperation.getInstance();
+        System.out.println(orderOp.generateUniqueOrderId());
+        if (orderOp.deleteAnOrder("o_00026")) {
+            System.out.println("successfully.");
+        } else {
+            System.out.println("Failed.");
+
+        }
     }
 }

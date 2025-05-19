@@ -14,6 +14,10 @@ public class AdminOperation {
 
     private AdminOperation() {
     }
+    /**
+     * Returns the single instance of AdminOperation.
+     * @return AdminOperation instance
+     */
     public static AdminOperation getInstance() {
         if (instance == null) {
             instance = new AdminOperation();

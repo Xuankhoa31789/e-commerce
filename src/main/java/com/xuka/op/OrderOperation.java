@@ -1,6 +1,9 @@
 package com.xuka.op;
 
 import com.xuka.model.Order;
+import com.xuka.model.Product;
+import com.xuka.utils.AllCustomerConsumptionApp;
+import com.xuka.utils.CustomerConsumptionApp;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
@@ -9,7 +12,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
+import java.util.stream.Collectors;
 
 
 public class OrderOperation {
@@ -230,5 +233,90 @@ public class OrderOperation {
         }
     }
 
+    /**
+     * Generates a chart showing the consumption (sum of order prices)
+     * across 12 different months for the given customer.
+     * @param customerId The ID of the customer
+     */
+    public void generateSingleCustomerConsumptionFigure(String customerId) {
+        String filePath = "src/main/data/orders.txt";
+        Map<String, Double> monthlyConsumption = new HashMap<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    JSONObject jsonObject = new JSONObject(line);
+                    if (jsonObject.getString("user_id").equals(customerId)) {
+                        String orderTime = jsonObject.getString("order_time");
+                        String month = orderTime.substring(3, 10); // Extract "MM-yyyy" from "dd-MM-yyyy_HH:mm:ss"
+
+                        // Retrieve product price
+                        String productId = jsonObject.getString("pro_id");
+                        Product product = ProductOperation.getInstance().getProductById(productId);
+                        if (product != null) {
+                            double price = product.getProCurrentPrice();
+                            monthlyConsumption.put(month, monthlyConsumption.getOrDefault(month, 0.0) + price);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Sort the months in chronological order
+        List<Map.Entry<String, Double>> sortedConsumption = monthlyConsumption.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .collect(Collectors.toList());
+
+        // Pass the sorted data to the JavaFX application
+        CustomerConsumptionApp.setMonthlyConsumption(sortedConsumption);
+
+        // Launch the JavaFX application
+        CustomerConsumptionApp.launch(CustomerConsumptionApp.class);
+    }
+
+    /**
+     * Generates a chart showing the consumption (sum of order prices)
+     * across 12 different months for all customers.
+     */
+    public void generateAllCustomersConsumptionFigure() {
+        String filePath = "src/main/data/orders.txt";
+        Map<String, Double> customerConsumption = new HashMap<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.trim().isEmpty()) {
+                    JSONObject jsonObject = new JSONObject(line);
+                    String customerId = jsonObject.getString("user_id");
+
+                    // Retrieve product price
+                    String productId = jsonObject.getString("pro_id");
+                    Product product = ProductOperation.getInstance().getProductById(productId);
+                    if (product != null) {
+                        double price = product.getProCurrentPrice();
+                        customerConsumption.put(customerId, customerConsumption.getOrDefault(customerId, 0.0) + price);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Sort customers alphabetically by ID
+        List<Map.Entry<String, Double>> sortedConsumption = customerConsumption.entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByKey())
+                .collect(Collectors.toList());
+
+        // Pass the sorted data to the JavaFX application
+        AllCustomerConsumptionApp.setCustomerConsumption(sortedConsumption);
+
+        // Launch the JavaFX application
+        AllCustomerConsumptionApp.launch(AllCustomerConsumptionApp.class);
+    }
 
 }

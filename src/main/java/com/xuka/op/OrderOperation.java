@@ -13,8 +13,4 @@ public class OrderOperation {
         }
         return instance;
     }
-
-    public void A(){
-
-    }
 }
